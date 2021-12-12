@@ -34,6 +34,74 @@ Double click to rendered diagram to swith to code/diagram.
 Click to extension icon to disable/enable parsing in current browser tab.
 
 ## Examples
+plantuml with includes
+```plantuml
+@startuml
+
+'!include styles.plantuml
+!include https://raw.githubusercontent.com/inthepocket/plantuml-styles/master/styles.plantuml
+
+actor "Resource Owner" as USER
+participant "Client" as CLIENT
+participant "Authorization Server" as AUTH
+participant "Resource Server" as API
+
+== OAuth 2.0 Authorization Code Grant ==
+ref over USER, CLIENT: Some reference
+USER -> CLIENT: Authenticate
+activate CLIENT
+CLIENT --> USER: Redirect to \n/authorize?response_type=code&client_id=<&x>&redirect_uri=<&x>&scope=<&x>
+deactivate CLIENT
+USER -> AUTH: GET /authorize?response_type=code&client_id=<&x>&redirect_uri=<&x>&scope=<&x>
+activate AUTH
+USER -> AUTH: Provide credentials
+USER -> AUTH: Approve scope
+AUTH --> USER: Redirect to \n<b>redirect_uri</b>?code=<&x>
+deactivate AUTH
+USER -> CLIENT: GET <b>redirect_uri</b>?code=<&x>
+activate CLIENT
+CLIENT -> AUTH: POST /token \ngrant_type=authorization_code\ncode=<&x>\nredirect_uri=<&x>\nclient_id=<&x>
+activate AUTH
+AUTH -> AUTH: Validate authorization_code,\n redirect_uri and client_id
+AUTH --> CLIENT: access_token=<&x>\ntoken_type=\nexpires_in=3600\nrefresh_token=<&x>
+deactivate AUTH
+alt Authorization code OK
+CLIENT --> USER: 200 OK
+else Authorization code expired
+CLIENT --> USER: 401 Not Authorized
+end
+deactivate CLIENT
+
+... Some delay ...
+
+== OAuth 2.0 Resource Request ==
+
+USER -> CLIENT: Request resource
+activate CLIENT
+CLIENT -> API: GET /resource\nAuthorization: Bearer <b>access_token</b>
+activate API
+API -> API: Validate access_token
+API --> CLIENT: resource
+deactivate API
+CLIENT --> USER: resource
+deactivate CLIENT
+
+
+== OAuth 2.0 Refreshing an Access Token ==
+
+
+CLIENT -> AUTH: POST /token \ngrant_type=refresh_token\nrefresh_token=<&x>\nscope=<&x>
+activate CLIENT
+activate AUTH
+AUTH -> AUTH: Validate refresh_token
+AUTH --> CLIENT: access_token=<&x>\ntoken_type=\nexpires_in=3600\nrefresh_token=<&x>
+deactivate AUTH
+deactivate CLIENT
+
+@enduml
+
+    ```
+
 Diagrams and charts code examples [here](doc/examples) and [here](https://kroki.io/examples.html).
 
 ![Diagram example](https://kroki.io/plantuml/svg/eJxNjrEOwjAMRHd_hZUJkPoLVTswMMNWdYiK01hKE5S4C1-Po2RgsvXufOepiM1yHgEutysOw4jmEVnYBv5a4RQNADs0z3QQvqiIQfEUAat3kXzS2sV5a3ZsKXNMasz_OPPuRTVtAgqFKhsXZ3XtIeI57li1nrPc47uiT04blbK2W2UOYNKpj_8Ace07KA==)
